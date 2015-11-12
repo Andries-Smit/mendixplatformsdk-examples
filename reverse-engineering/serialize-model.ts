@@ -24,32 +24,34 @@ THE SOFTWARE.
 
 /// <reference path='typings/tsd.d.ts' />
 
-import {ModelSdkClient, IModel, IModelUnit, domainmodels, utils} from "mendixmodelsdk";
-import {MendixSdkClient, Project, OnlineWorkingCopy} from "mendixplatformsdk";
+import {ModelSdkClient, IModel, IModelUnit, domainmodels, utils, projects} from "mendixmodelsdk";
+import {MendixSdkClient, Project, OnlineWorkingCopy, loadAsPromise} from "mendixplatformsdk";
 
+import when = require("when");
 /*
  * Custom code in here
  * Currently this code prints all Documents in all Modules + Domain model in JavaScript code
  */
-function printAllDocuments(model: IModel): void {
+function printAllDocuments(model: IModel): when.Promise<void> {
     console.log(`Project ${model.id} created successfully`);
 
     //The following code is an example on retrieving all modules, entities, and associations
-    model.allModules().forEach((mod) => {
-        console.log(`\n//--- Module: ${mod.name} --- `);
-        // serialize all documents within this module
-        mod.documents.forEach((doc) => {
+    return when.all<void>(model.allModules().map( (mod) => {
 
-            let _documentLogStatement = `Document ${doc.qualifiedName} in Module: ${mod.name}`;
-            printModelUnitToConsole(doc, _documentLogStatement);
+          console.log(`\n//--- Module: ${mod.name} --- `);
+          // serialize all documents within this module
+          //let logStatement = `Document ${doc.qualifiedName} in Module: ${mod.name}`;
+          return loadAllDocuments(mod.documents)
+          .then(documents => printAllDocumentsAsPromise(documents));
+    }));
+}
 
-        });
+function loadAllDocuments(documents: projects.IDocument[]): when.Promise<projects.Document[]> {
+  return when.all<projects.Document[]>(documents.map( (doc) => loadAsPromise(doc)));
+}
 
-        // serialize the domain model
-        let printStatement= `Domain model ${mod.domainModel.qualifiedName} in Module: ${mod.name}`;
-        printModelUnitToConsole(mod.domainModel, printStatement);
-
-    });
+function printAllDocumentsAsPromise(documents: projects.Document[]): when.Promise<void> {
+  return when.all<void>(documents.map( (doc) => printModelUnitToConsole(doc)));
 }
 
 function errorHandler(error): void {
@@ -58,17 +60,13 @@ function errorHandler(error): void {
     process.exit(1);
 }
 
-function printModelUnitToConsole(unit: IModelUnit, logStatement: string) {
-  console.log(`${logStatement}`);
-
-    unit.load(fullUnit => {
-        let actualJsSource = utils.serializeToJs(unit);
-        console.log(`//--- ${logStatement} --- \n ${actualJsSource}`);
-    });
+function printModelUnitToConsole(unit: IModelUnit): when.Promise<void> {
+  let actualJsSource = utils.serializeToJs(unit);
+  return when.resolve(console.log(`//--- ${unit.qualifiedName} --- \n ${actualJsSource}`));
 }
 
-const username = `richard.ford51@example.com`;
-const apikey = `06160c72-14c7-43b5-b45a-98b60a56b661`;
+const username = `{YOUR_LOGIN}`;
+const apikey = `{YOUR_API_KEY}`;
 const client = new MendixSdkClient(username, apikey);
 
 // Please change your project Id and name to something you prefer.
@@ -77,4 +75,4 @@ let projectName = `My first SDK app - Generator`;
 client.platform().createNewApp(projectName)
   .then((project) => project.createWorkingCopy())
   .then((workingCopy) => printAllDocuments(workingCopy.model()))
-  .done( () => { /* success! */ }, errorHandler);
+  .done( () => console.log(`Done`), errorHandler);
