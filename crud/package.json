@@ -11,9 +11,9 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelcomponents": "0.8.1",
-    "mendixmodelsdk": "0.8.1",
-    "mendixplatformsdk": "0.8.1",
+    "mendixmodelcomponents": "../mendixmodelcomponents",
+    "mendixmodelsdk": "../mendixmodelsdk",
+    "mendixplatformsdk": "../mendixplatformsdk",
     "mobservable": "1.0.0",
     "readline-sync": "^1.2.21",
     "when": "^3.7.3"

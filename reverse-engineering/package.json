@@ -11,8 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelsdk": "^0.8.1",
-    "mendixplatformsdk": "0.8.2",
+    "mendixmodelsdk": "../mendixmodelsdk/",
+    "mendixplatformsdk": "../mendixplatformsdk/",
     "when": "^3.7.3"
   },
   "devDependencies": {
