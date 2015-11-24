@@ -173,8 +173,6 @@ function createPages(project: IModel, module: projects.IModule, components: Mend
 }
 
 function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attribute {
-	// Yolo
-	
 	if (entity.qualifiedName === myFirstModuleName + '.' + customerEntityName) {
 		let attributes = entity.attributes.filter(a => a.name === customerNumberAttributeName);
 
@@ -233,36 +231,6 @@ let newMicroflowName = 'MyFirstNewMicroflow';
 
 function createMicroflows(module: projects.IModule, components: MendixModelComponents): projects.IModule {
 	myLog('Creating microflow ...');
-
-	// 	let startEvent = new microflows.StartEvent();
-	// 	startEvent.relativeMiddlePoint = { x: 0, y: 0 };
-	// 
-	// 	let retrieveAction = new microflows.RetrieveAction();
-	// 	let retrieveActionActivity = new microflows.ActionActivity();
-	// 	retrieveActionActivity.action = retrieveAction;
-	// 	retrieveActionActivity.relativeMiddlePoint = { x: 100, y: 0 };
-	// 
-	// 	let endEvent = new microflows.EndEvent();
-	// 	endEvent.relativeMiddlePoint = { x: 200, y: 0 };
-	// 
-	// 	let microflow = new microflows.Microflow(module);
-	// 	microflow.name = newMicroflowName;
-	// 
-	// 	microflow.objectCollection = new microflows.MicroflowObjectCollection();
-	// 	microflow.objectCollection.objects.push(startEvent);
-	// 	microflow.objectCollection.objects.push(retrieveActionActivity);
-	// 	microflow.objectCollection.objects.push(endEvent);
-	// 
-	// 	let sequence1 = new microflows.SequenceFlow();
-	// 	sequence1.origin = startEvent;
-	// 	sequence1.destination = retrieveActionActivity;
-	// 
-	// 	let sequence2 = new microflows.SequenceFlow();
-	// 	sequence2.origin = retrieveActionActivity;
-	// 	sequence2.destination = endEvent;
-	// 
-	// 	microflow.flows.push(sequence1);
-	// 	microflow.flows.push(sequence2);
 
 	createExampleMicroflow(module, components);
 
