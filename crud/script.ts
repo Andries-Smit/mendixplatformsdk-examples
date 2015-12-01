@@ -3,9 +3,7 @@
 import { MendixSdkClient, Project, OnlineWorkingCopy, Revision } from "mendixplatformsdk";
 import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navigation, texts } from "mendixmodelsdk";
 
-import {associate, createEntity, addAutoNumberAttribute, addDateTimeAttribute, addIntegerAttribute, addStringAttribute} from "mendixmodelcomponents";
-import {retrieveLayout, createEditPageForEntity, createListPageForEntity} from "mendixmodelcomponents";
-import {createMicroflow, createParameter, createStartEvent, createEndEvent, createRetrieveByAssociationActivity, addObjectToMicroflow} from "mendixmodelcomponents";
+import { MendixModelComponents} from "mendixmodelcomponents";
 
 import when = require('when');
 
@@ -55,10 +53,12 @@ client.platform()
 		return project.createWorkingCopy();
 	})
 	.then(workingCopy => {
+		const components = new MendixModelComponents(workingCopy.model());
+		
 		myLog(`Created working copy: ${workingCopy.id() }`);
 		readlineSync.question("About to generate a domain model. Press [ENTER] to continue ... ");
 
-		return generateApp(workingCopy);
+		return generateApp(workingCopy, components);
 	})
 	.then(workingCopy => {
 		readlineSync.question("About to commit changes back to the Team Server. Press [ENTER] to continue ... ");
@@ -73,16 +73,16 @@ client.platform()
 		console.dir(error);
 	});
 
-function generateApp(workingCopy: OnlineWorkingCopy): when.Promise<OnlineWorkingCopy> {
+function generateApp(workingCopy: OnlineWorkingCopy, components: MendixModelComponents): when.Promise<OnlineWorkingCopy> {
 	console.log("Generating app model...");
 
 	const module = workingCopy.model()
 		.allModules()
 		.filter(m => m.name === myFirstModuleName)[0];
 
-	return createDomainModel(module)
-		.then(module => createPages(workingCopy.model(), module))
-		.then(module => createMicroflows(module))
+	return createDomainModel(module, components)
+		.then(module => createPages(workingCopy.model(), module, components))
+		.then(module => createMicroflows(module, components))
 		.then(module => updateNavigation(workingCopy.model(), module))
 		.then(_ => console.log(`Generated app model successfully.`))
 		.then(_ => workingCopy);
@@ -112,29 +112,29 @@ function loadAsPromise<T>(loadable: Loadable<T>): When.Promise<T> {
  *
  */
 
-function createDomainModel(module: projects.IModule): when.Promise<projects.IModule> {
+function createDomainModel(module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
 	myLog('Creating domain model ...');
 
 	return loadAsPromise(module.domainModel)
 		.then(domainModel => {
-			let customer = createEntity(domainModel, customerEntityName, 100, 100);
-			addAutoNumberAttribute(customer, customerNumberAttributeName, '1');
-			addStringAttribute(customer, 'FirstName');
-			addDateTimeAttribute(customer, 'SignupDate');
-			addStringAttribute(customer, 'LastName');
-			addStringAttribute(customer, 'Email');
-			addStringAttribute(customer, 'Address');
+			let customer = components.createEntity(domainModel, customerEntityName, 100, 100);
+			components.addAutoNumberAttribute(customer, customerNumberAttributeName, '1');
+			components.addStringAttribute(customer, 'FirstName');
+			components.addDateTimeAttribute(customer, 'SignupDate');
+			components.addStringAttribute(customer, 'LastName');
+			components.addStringAttribute(customer, 'Email');
+			components.addStringAttribute(customer, 'Address');
 
-			let invoice = createEntity(domainModel, invoiceEntityName, 400, 100);
-			addAutoNumberAttribute(invoice, invoiceNumberAttributeName, '1');
-			addDateTimeAttribute(invoice, invoiceTimestampAttributeName);
+			let invoice = components.createEntity(domainModel, invoiceEntityName, 400, 100);
+			components.addAutoNumberAttribute(invoice, invoiceNumberAttributeName, '1');
+			components.addDateTimeAttribute(invoice, invoiceTimestampAttributeName);
 
-			let invoiceLine = createEntity(domainModel, invoiceLineEntityName, 700, 100);
-			addStringAttribute(invoiceLine, invoiceLineProductAttributeName);
-			addIntegerAttribute(invoiceLine, 'Quantity');
+			let invoiceLine = components.createEntity(domainModel, invoiceLineEntityName, 700, 100);
+			components.addStringAttribute(invoiceLine, invoiceLineProductAttributeName);
+			components.addIntegerAttribute(invoiceLine, 'Quantity');
 
-			associate(domainModel, invoice, customer, 'Invoices');
-			associate(domainModel, invoiceLine, invoice, 'Lines');
+			components.associate(domainModel, invoice, customer, 'Invoices');
+			components.associate(domainModel, invoiceLine, invoice, 'Lines');
 
 			myLog('Created domain model.');
 
@@ -148,10 +148,10 @@ function createDomainModel(module: projects.IModule): when.Promise<projects.IMod
  *
  */
 
-function createPages(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
+function createPages(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
 	myLog('Creating new pages ...');
 
-	return retrieveLayout(project, desktopLayoutName)
+	return components.retrieveLayout(project, desktopLayoutName)
 		.then(desktopLayout => {
 			return loadAsPromise(module.domainModel)
 				.then(domainModel => {
@@ -161,8 +161,8 @@ function createPages(project: IModel, module: projects.IModule): when.Promise<pr
 							|| e.name === invoiceLineEntityName);
 
 					entities.forEach(entity => {
-						let editPage = createEditPageForEntity(entity, desktopLayout, desktopLayoutPlaceholderName);
-						createListPageForEntity(entity, sortAttributeForEntity(entity), desktopLayout, desktopLayoutPlaceholderName, editPage);
+						let editPage = components.createEditPageForEntity(entity, desktopLayout, desktopLayoutPlaceholderName);
+						components.createListPageForEntity(entity, sortAttributeForEntity(entity), desktopLayout, desktopLayoutPlaceholderName, editPage);
 					});
 
 					myLog('New pages created.');
@@ -173,8 +173,6 @@ function createPages(project: IModel, module: projects.IModule): when.Promise<pr
 }
 
 function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attribute {
-	// Yolo
-	
 	if (entity.qualifiedName === myFirstModuleName + '.' + customerEntityName) {
 		let attributes = entity.attributes.filter(a => a.name === customerNumberAttributeName);
 
@@ -215,7 +213,7 @@ function updateNavigation(project: IModel, module: projects.IModule): when.Promi
 		let navDoc = project.allNavigationDocuments()[0];
 
 		navDoc.load(navdoc => {
-			navdoc.desktopProfile.homePage = new navigation.HomePage();
+			navdoc.desktopProfile.homePage = navigation.HomePage.create(project);
 			navdoc.desktopProfile.homePage.page = targetPage;
 
 			resolve(module);
@@ -231,64 +229,34 @@ function updateNavigation(project: IModel, module: projects.IModule): when.Promi
 
 let newMicroflowName = 'MyFirstNewMicroflow';
 
-function createMicroflows(module: projects.IModule): projects.IModule {
+function createMicroflows(module: projects.IModule, components: MendixModelComponents): projects.IModule {
 	myLog('Creating microflow ...');
 
-	// 	let startEvent = new microflows.StartEvent();
-	// 	startEvent.relativeMiddlePoint = { x: 0, y: 0 };
-	// 
-	// 	let retrieveAction = new microflows.RetrieveAction();
-	// 	let retrieveActionActivity = new microflows.ActionActivity();
-	// 	retrieveActionActivity.action = retrieveAction;
-	// 	retrieveActionActivity.relativeMiddlePoint = { x: 100, y: 0 };
-	// 
-	// 	let endEvent = new microflows.EndEvent();
-	// 	endEvent.relativeMiddlePoint = { x: 200, y: 0 };
-	// 
-	// 	let microflow = new microflows.Microflow(module);
-	// 	microflow.name = newMicroflowName;
-	// 
-	// 	microflow.objectCollection = new microflows.MicroflowObjectCollection();
-	// 	microflow.objectCollection.objects.push(startEvent);
-	// 	microflow.objectCollection.objects.push(retrieveActionActivity);
-	// 	microflow.objectCollection.objects.push(endEvent);
-	// 
-	// 	let sequence1 = new microflows.SequenceFlow();
-	// 	sequence1.origin = startEvent;
-	// 	sequence1.destination = retrieveActionActivity;
-	// 
-	// 	let sequence2 = new microflows.SequenceFlow();
-	// 	sequence2.origin = retrieveActionActivity;
-	// 	sequence2.destination = endEvent;
-	// 
-	// 	microflow.flows.push(sequence1);
-	// 	microflow.flows.push(sequence2);
-
-	createExampleMicroflow(module);
+	createExampleMicroflow(module, components);
 
 	myLog('Microflow created.');
 
 	return module;
 }
 
-function createExampleMicroflow(module: projects.IModule) {
+function createExampleMicroflow(module: projects.IModule, components: MendixModelComponents) {
 	let customer = module.domainModel.entities.filter(e => e.name === customerEntityName)[0];
 	let invoice = module.domainModel.entities.filter(e => e.name === invoiceEntityName)[0];
 
-	let microflow = createMicroflow(module, newMicroflowName);
+	let microflow = components.createMicroflow(module, newMicroflowName);
 
 	let parameterName = customerEntityName + 'Input';
 
-	let parameter = createParameter(parameterName, customer.qualifiedName);
-	addObjectToMicroflow(microflow, microflow.objectCollection, parameter, null);
+	let parameter = components.createParameter(parameterName, customer.qualifiedName);
+	components.addObjectToMicroflow(microflow, microflow.objectCollection, parameter, null);
 
-	let previousObject = addObjectToMicroflow(microflow, microflow.objectCollection, createStartEvent(), null);
+	let previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, components.createStartEvent(), null);
 
 	let invoicesAssoc = module.domainModel.associations.filter(a => a.name === 'Invoices')[0];
-	let retrieveByAssocActivity = createRetrieveByAssociationActivity(parameter.name, invoicesAssoc);
-	previousObject = addObjectToMicroflow(microflow, microflow.objectCollection, retrieveByAssocActivity, previousObject);
+	let retrieveByAssocActivity = components.createRetrieveByAssociationActivity(parameter.name, invoicesAssoc);
+	previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, retrieveByAssocActivity, previousObject);
 
-	let endEvent = createEndEvent(microflow, "[" + invoice.qualifiedName + "]",
+	let endEvent = components.createEndEvent(microflow, "[" + invoice.qualifiedName + "]",
 		"$" + (<microflows.RetrieveAction>retrieveByAssocActivity.action).outputVariableName);
-	previousObject = addObjectToMicroflow(microflow, microflow.objectCollection, endEvent, previousObject, false);
+	previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, endEvent, previousObject, false);
 }

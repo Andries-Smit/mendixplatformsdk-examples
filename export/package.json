@@ -11,8 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelsdk": "^0.8.1",
-    "mendixplatformsdk": "0.8.1",
+    "mendixmodelsdk": "1.0.0",
+    "mendixplatformsdk": "1.0.0",
     "when": "^3.7.3"
   },
   "devDependencies": {
