@@ -1,6 +1,6 @@
 {
   "name": "1-cu-demo-export",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelsdk": "1.0.0",
-    "mendixplatformsdk": "1.0.0",
+    "mendixmodelsdk": "~1.0.1",
+    "mendixplatformsdk": "~1.0.1",
     "when": "^3.7.3"
   },
   "devDependencies": {
