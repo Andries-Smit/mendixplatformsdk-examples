@@ -80,8 +80,6 @@ function getLineRepresentationOfAction(action: microflows.MicroflowAction) {
         return 'close_form()';
     } else if (action instanceof microflows.CommitAction) {
         return 'commit ' + action.commitVariableName + (action.withEvents ? '' : ' no-events') + (action.refreshInClient ? ' refresh-client' : '');
-    } else if (action instanceof microflows.DeprecatedCreateAction) {
-        return 'var ' + action.outputVariableName + ' = new ' + action.entityQualifiedName + '()';
     } else if (action instanceof microflows.CreateObjectAction) {
         return 'var ' + action.outputVariableName + ' = new ' + action.entityQualifiedName + '(' + action.items.map(x => (x.attributeQualifiedName ? x.attributeQualifiedName.split('.')[2] : x.associationQualifiedName) + '=' + x.value).join(', ') + ')';
     } else if (action instanceof microflows.CreateListAction) {
