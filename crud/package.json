@@ -1,6 +1,6 @@
 {
   "name": "cu-demo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,10 +11,10 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelcomponents": "1.0.0",
-    "mendixmodelsdk": "1.0.0",
-    "mendixplatformsdk": "1.0.0",
-    "mobservable": "1.0.0",
+    "mendixmodelcomponents": "~1.0.1",
+    "mendixmodelsdk": "~1.0.1",
+    "mendixplatformsdk": "~1.0.1",
+    "mobservable": "^1.0.8",
     "readline-sync": "^1.2.21",
     "when": "^3.7.3"
   },
