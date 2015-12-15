@@ -1,6 +1,6 @@
 {
   "name": "reverse-engineering-demo",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "",
   "main": "serialize-model.js",
   "scripts": {
@@ -11,8 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelsdk": "~1.0.1",
-    "mendixplatformsdk": "~1.0.1",
+    "mendixmodelsdk": "^1.0.1",
+    "mendixplatformsdk": "^1.0.1",
     "when": "^3.7.3"
   },
   "devDependencies": {
