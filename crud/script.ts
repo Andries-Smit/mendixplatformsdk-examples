@@ -83,7 +83,6 @@ function generateApp(workingCopy: OnlineWorkingCopy, components: MendixModelComp
 	return createDomainModel(module, components)
 		.then(module => createPages(workingCopy.model(), module, components))
 		.then(module => createMicroflows(module, components))
-		.then(module => updateNavigation(workingCopy.model(), module))
 		.then(_ => console.log(`Generated app model successfully.`))
 		.then(_ => workingCopy);
 }
@@ -198,27 +197,6 @@ function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attri
 			return null;
 		}
 	}
-}
-
-/*
- *
- * NAVIGATION
- *
- */
-
-function updateNavigation(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
-	const targetPage: pages.Page = null;
-
-	return when.promise<projects.IModule>((resolve, reject) => {
-		let navDoc = project.allNavigationDocuments()[0];
-
-		navDoc.load(navdoc => {
-			navdoc.desktopProfile.homePage = navigation.HomePage.create(project);
-			navdoc.desktopProfile.homePage.page = targetPage;
-
-			resolve(module);
-		});
-	});
 }
 
 /*
