@@ -1,18 +1,18 @@
 {
   "name": "reverse-engineering-demo",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "serialize-model.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mendix",
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelsdk": "^1.0.1",
-    "mendixplatformsdk": "^1.0.1",
+    "mendixmodelsdk": "^1.1.0",
+    "mendixplatformsdk": "^1.0.2",
     "when": "^3.7.3"
   },
   "devDependencies": {
