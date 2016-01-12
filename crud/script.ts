@@ -1,7 +1,7 @@
 ///<reference path="typings/tsd.d.ts" />
 
 import { MendixSdkClient, Project, OnlineWorkingCopy, Revision } from "mendixplatformsdk";
-import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navigation, texts } from "mendixmodelsdk";
+import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navigation, texts,security, menus } from "mendixmodelsdk";
 
 import { MendixModelComponents} from "mendixmodelcomponents";
 
@@ -82,7 +82,11 @@ function generateApp(workingCopy: OnlineWorkingCopy, components: MendixModelComp
 
 	return createDomainModel(module, components)
 		.then(module => createPages(workingCopy.model(), module, components))
-		.then(module => createMicroflows(module, components))
+        .then(module => updateSecurity(workingCopy.model(), module, components))
+        .then(module => updateEntitySecurity(workingCopy.model(), module))
+        .then(module => updatePageSecurity(workingCopy.model(), module))
+        .then(module => createMicroflows(module, components))
+        .then(module => updateNavigation(workingCopy.model(), module, components))
 		.then(_ => console.log(`Generated app model successfully.`))
 		.then(_ => workingCopy);
 }
@@ -101,7 +105,7 @@ interface Loadable<T> {
 	load(callback: (result: T) => void): void;
 }
 
-function loadAsPromise<T>(loadable: Loadable<T>): When.Promise<T> {
+function loadAsPromise<T>(loadable: Loadable<T>): when.Promise<T> {
 	return when.promise<T>((resolve, reject) => loadable.load(resolve));
 }
 
@@ -237,4 +241,130 @@ function createExampleMicroflow(module: projects.IModule, components: MendixMode
 	let endEvent = components.createEndEvent(microflow, "[" + invoice.qualifiedName + "]",
 		"$" + (<microflows.RetrieveAction>retrieveByAssocActivity.action).outputVariableName);
 	previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, endEvent, previousObject, false);
+}
+
+
+
+/*
+*
+* Security
+*
+*/
+function updateSecurity(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
+    console.log('Turning security on to production');
+    return loadAsPromise(project.allProjectSecurities()[0])
+        .then(projectSecurity => {
+            projectSecurity.securityLevel = security.SecurityLevel.CheckEverything;
+            projectSecurity.adminPassword = '1';
+            return module;
+        });
+
+}
+
+function updateEntitySecurity(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
+    console.log('Creating access rules');
+    return loadAsPromise(module.moduleSecurity)
+        .then(moduleSecurity => {
+            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === 'User')[0];
+
+            return loadAsPromise(module.domainModel)
+                .then(domainModel => {
+                    let entitiesList = domainModel.entities;
+
+                    entitiesList.forEach(entity => {
+                        console.log(`Creating access rule for ${entity.name}`);
+                        let accessRule = domainmodels.AccessRule.create(project);
+                        accessRule.moduleRoles.push(moduleRole);
+                        accessRule.allowCreate = true;
+                        accessRule.allowDelete = true;
+                        accessRule.defaultMemberAccessRights = domainmodels.MemberAccessRights.ReadWrite;
+
+                        entity.attributes.forEach(attribute => {
+                            let memberRight = domainmodels.MemberAccess.create(project);
+                            if (attribute.type instanceof domainmodels.AutoNumberAttributeType) {
+                                memberRight.accessRights = domainmodels.MemberAccessRights.ReadOnly;
+                            } else {
+                                memberRight.accessRights = domainmodels.MemberAccessRights.ReadWrite;
+                            }
+                            memberRight.attribute = attribute;
+                            accessRule.memberAccesses.push(memberRight);
+                        });
+
+                        domainModel.associations.filter(association => association.parent === entity).forEach(assoc => {
+                            let memberRight = domainmodels.MemberAccess.create(project);
+                            memberRight.accessRights = domainmodels.MemberAccessRights.ReadWrite;
+                            memberRight.association = assoc;
+                            accessRule.memberAccesses.push(memberRight);
+                        });
+                        entity.accessRules.push(accessRule);
+
+                    });
+                    return module;
+                });
+        });
+}
+
+
+
+function updatePageSecurity(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
+    console.log('Creating access rules for pages');
+    return loadAsPromise(module.moduleSecurity)
+        .then(moduleSecurity => {
+            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === 'User')[0];
+
+            let pagesList = project.allPages().filter(page => page.qualifiedName.indexOf(myFirstModuleName) >= 0);
+            pagesList.forEach(page => {
+                return loadAsPromise(page)
+                    .then(pageObj => {
+                        console.log(`Creating page access for ${pageObj.name}`);
+                        pageObj.allowedRoles.push(moduleRole);
+                        return module;
+                    });
+
+            });
+            return module;
+        });
+}
+
+/*
+ *
+ * NAVIGATION
+ *
+ */
+
+function updateNavigation(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
+
+    const targetPage: pages.Page = null;
+
+    return when.promise<projects.IModule>((resolve, reject) => {
+        let navDoc = project.allNavigationDocuments()[0];
+        navDoc.load(navdoc => {
+            let navigationProfile = navdoc.desktopProfile;
+            let pagesList = project.allPages().filter(page => page.name.indexOf('List') >= 0);
+            let menuItemCollection = navigationProfile.menuItemCollection;
+
+            pagesList.forEach(page => {
+                let pageName = page.name.replace(/_/g, ' ');
+                console.log(`Adding page ${pageName} to navigation`);
+                let pageSetting = pages.PageSettings.create(project);
+                pageSetting.page = page;
+                let pageClientAction = pages.PageClientAction.create(project);
+                pageClientAction.pageSettings = pageSetting;
+                let menuItem = menus.MenuItem.create(project);
+                menuItem.caption = components.createText(pageName);
+                menuItem.action = pageClientAction;
+                if (page.name === 'Customer_List') {
+                    navigationProfile.homePage = navigation.HomePage.create(project);
+                    navigationProfile.homePage.page = page;
+                }
+                menuItemCollection.items.push(menuItem);
+            });
+            navigationProfile.enabled = true;
+            navigationProfile.applicationTitle = "Mendix";
+            navigationProfile.menuItemCollection = menuItemCollection;
+
+            resolve(module);
+        });
+    });
+
 }
