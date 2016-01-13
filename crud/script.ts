@@ -280,21 +280,19 @@ function updateEntitySecurity(project: IModel, module: projects.IModule): when.P
                         accessRule.defaultMemberAccessRights = domainmodels.MemberAccessRights.ReadWrite;
 
                         entity.attributes.forEach(attribute => {
-                            let memberRight = domainmodels.MemberAccess.create(project);
+                            let memberRight = domainmodels.MemberAccess.createIn(accessRule);
                             if (attribute.type instanceof domainmodels.AutoNumberAttributeType) {
                                 memberRight.accessRights = domainmodels.MemberAccessRights.ReadOnly;
                             } else {
                                 memberRight.accessRights = domainmodels.MemberAccessRights.ReadWrite;
                             }
                             memberRight.attribute = attribute;
-                            accessRule.memberAccesses.push(memberRight);
                         });
 
                         domainModel.associations.filter(association => association.parent === entity).forEach(assoc => {
-                            let memberRight = domainmodels.MemberAccess.create(project);
+                            let memberRight = domainmodels.MemberAccess.createIn(accessRule);
                             memberRight.accessRights = domainmodels.MemberAccessRights.ReadWrite;
                             memberRight.association = assoc;
-                            accessRule.memberAccesses.push(memberRight);
                         });
                         entity.accessRules.push(accessRule);
 
