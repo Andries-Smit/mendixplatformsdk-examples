@@ -1,7 +1,7 @@
 ///<reference path="typings/tsd.d.ts" />
 
 import { MendixSdkClient, Project, OnlineWorkingCopy, Revision } from "mendixplatformsdk";
-import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navigation, texts,security, menus } from "mendixmodelsdk";
+import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navigation, texts, security, menus } from "mendixmodelsdk";
 
 import { MendixModelComponents} from "mendixmodelcomponents";
 
@@ -45,50 +45,50 @@ const invoiceLineProductAttributeName = 'Product';
 const client = new MendixSdkClient(username, apikey);
 
 client.platform()
-	.createNewApp(appname)
-	.then(project => {
-		myLog(`Created new project: ${project.id() }: ${project.name() }`);
-		readlineSync.question("About to create online working copy. Press [ENTER] to continue ... ");
+    .createNewApp(appname)
+    .then(project => {
+        myLog(`Created new project: ${project.id()}: ${project.name()}`);
+        readlineSync.question("About to create online working copy. Press [ENTER] to continue ... ");
 
-		return project.createWorkingCopy();
-	})
-	.then(workingCopy => {
-		const components = new MendixModelComponents(workingCopy.model());
-		
-		myLog(`Created working copy: ${workingCopy.id() }`);
-		readlineSync.question("About to generate a domain model. Press [ENTER] to continue ... ");
+        return project.createWorkingCopy();
+    })
+    .then(workingCopy => {
+        const components = new MendixModelComponents(workingCopy.model());
 
-		return generateApp(workingCopy, components);
-	})
-	.then(workingCopy => {
-		readlineSync.question("About to commit changes back to the Team Server. Press [ENTER] to continue ... ");
-		return workingCopy.commit();
-	})
-	.done(
-	() => {
-		myLog("Done. Check the result in the Mendix Business Modeler.");
-	},
-	error => {
-		console.log("Something went wrong:");
-		console.dir(error);
-	});
+        myLog(`Created working copy: ${workingCopy.id()}`);
+        readlineSync.question("About to generate a domain model. Press [ENTER] to continue ... ");
+
+        return generateApp(workingCopy, components);
+    })
+    .then(workingCopy => {
+        readlineSync.question("About to commit changes back to the Team Server. Press [ENTER] to continue ... ");
+        return workingCopy.commit();
+    })
+    .done(
+    () => {
+        myLog("Done. Check the result in the Mendix Business Modeler.");
+    },
+    error => {
+        console.log("Something went wrong:");
+        console.dir(error);
+    });
 
 function generateApp(workingCopy: OnlineWorkingCopy, components: MendixModelComponents): when.Promise<OnlineWorkingCopy> {
-	console.log("Generating app model...");
+    console.log("Generating app model...");
 
-	const module = workingCopy.model()
-		.allModules()
-		.filter(m => m.name === myFirstModuleName)[0];
+    const module = workingCopy.model()
+        .allModules()
+        .filter(m => m.name === myFirstModuleName)[0];
 
-	return createDomainModel(module, components)
-		.then(module => createPages(workingCopy.model(), module, components))
+    return createDomainModel(module, components)
+        .then(module => createPages(workingCopy.model(), module, components))
         .then(module => updateSecurity(workingCopy.model(), module, components))
         .then(module => updateEntitySecurity(workingCopy.model(), module))
         .then(module => updatePageSecurity(workingCopy.model(), module))
         .then(module => createMicroflows(module, components))
         .then(module => updateNavigation(workingCopy.model(), module, components))
-		.then(_ => console.log(`Generated app model successfully.`))
-		.then(_ => workingCopy);
+        .then(_ => console.log(`Generated app model successfully.`))
+        .then(_ => workingCopy);
 }
 
 /*
@@ -98,15 +98,15 @@ function generateApp(workingCopy: OnlineWorkingCopy, components: MendixModelComp
  */
 
 function myLog(message, ...optionalParams: any[]): void {
-	console.log(`${Date.now() }: ${message} ${optionalParams}`);
+    console.log(`${Date.now()}: ${message} ${optionalParams}`);
 }
 
 interface Loadable<T> {
-	load(callback: (result: T) => void): void;
+    load(callback: (result: T) => void): void;
 }
 
 function loadAsPromise<T>(loadable: Loadable<T>): when.Promise<T> {
-	return when.promise<T>((resolve, reject) => loadable.load(resolve));
+    return when.promise<T>((resolve, reject) => loadable.load(resolve));
 }
 
 /*
@@ -116,33 +116,33 @@ function loadAsPromise<T>(loadable: Loadable<T>): when.Promise<T> {
  */
 
 function createDomainModel(module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
-	myLog('Creating domain model ...');
+    myLog('Creating domain model ...');
 
-	return loadAsPromise(module.domainModel)
-		.then(domainModel => {
-			let customer = components.createEntity(domainModel, customerEntityName, 100, 100);
-			components.addAutoNumberAttribute(customer, customerNumberAttributeName, '1');
-			components.addStringAttribute(customer, 'FirstName');
-			components.addDateTimeAttribute(customer, 'SignupDate');
-			components.addStringAttribute(customer, 'LastName');
-			components.addStringAttribute(customer, 'Email');
-			components.addStringAttribute(customer, 'Address');
+    return loadAsPromise(module.domainModel)
+        .then(domainModel => {
+            let customer = components.createEntity(domainModel, customerEntityName, 100, 100);
+            components.addAutoNumberAttribute(customer, customerNumberAttributeName, '1');
+            components.addStringAttribute(customer, 'FirstName');
+            components.addDateTimeAttribute(customer, 'SignupDate');
+            components.addStringAttribute(customer, 'LastName');
+            components.addStringAttribute(customer, 'Email');
+            components.addStringAttribute(customer, 'Address');
 
-			let invoice = components.createEntity(domainModel, invoiceEntityName, 400, 100);
-			components.addAutoNumberAttribute(invoice, invoiceNumberAttributeName, '1');
-			components.addDateTimeAttribute(invoice, invoiceTimestampAttributeName);
+            let invoice = components.createEntity(domainModel, invoiceEntityName, 400, 100);
+            components.addAutoNumberAttribute(invoice, invoiceNumberAttributeName, '1');
+            components.addDateTimeAttribute(invoice, invoiceTimestampAttributeName);
 
-			let invoiceLine = components.createEntity(domainModel, invoiceLineEntityName, 700, 100);
-			components.addStringAttribute(invoiceLine, invoiceLineProductAttributeName);
-			components.addIntegerAttribute(invoiceLine, 'Quantity');
+            let invoiceLine = components.createEntity(domainModel, invoiceLineEntityName, 700, 100);
+            components.addStringAttribute(invoiceLine, invoiceLineProductAttributeName);
+            components.addIntegerAttribute(invoiceLine, 'Quantity');
 
-			components.associate(domainModel, invoice, customer, 'Invoices');
-			components.associate(domainModel, invoiceLine, invoice, 'Lines');
+            components.associate(domainModel, invoice, customer, 'Invoices');
+            components.associate(domainModel, invoiceLine, invoice, 'Lines');
 
-			myLog('Created domain model.');
+            myLog('Created domain model.');
 
-			return module;
-		});
+            return module;
+        });
 }
 
 /*
@@ -152,55 +152,55 @@ function createDomainModel(module: projects.IModule, components: MendixModelComp
  */
 
 function createPages(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
-	myLog('Creating new pages ...');
+    myLog('Creating new pages ...');
 
-	return components.retrieveLayout(project, desktopLayoutName)
-		.then(desktopLayout => {
-			return loadAsPromise(module.domainModel)
-				.then(domainModel => {
-					let entities = domainModel.entities
-						.filter(e => e.name === customerEntityName
-							|| e.name === invoiceEntityName
-							|| e.name === invoiceLineEntityName);
+    return components.retrieveLayout(project, desktopLayoutName)
+        .then(desktopLayout => {
+            return loadAsPromise(module.domainModel)
+                .then(domainModel => {
+                    let entities = domainModel.entities
+                        .filter(e => e.name === customerEntityName
+                            || e.name === invoiceEntityName
+                            || e.name === invoiceLineEntityName);
 
-					entities.forEach(entity => {
-						let editPage = components.createEditPageForEntity(entity, desktopLayout, desktopLayoutPlaceholderName);
-						components.createListPageForEntity(entity, sortAttributeForEntity(entity), desktopLayout, desktopLayoutPlaceholderName, editPage);
-					});
+                    entities.forEach(entity => {
+                        let editPage = components.createEditPageForEntity(entity, desktopLayout, desktopLayoutPlaceholderName);
+                        components.createListPageForEntity(entity, sortAttributeForEntity(entity), desktopLayout, desktopLayoutPlaceholderName, editPage);
+                    });
 
-					myLog('New pages created.');
+                    myLog('New pages created.');
 
-					return module;
-				});
-		});
+                    return module;
+                });
+        });
 }
 
 function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attribute {
-	if (entity.qualifiedName === myFirstModuleName + '.' + customerEntityName) {
-		let attributes = entity.attributes.filter(a => a.name === customerNumberAttributeName);
+    if (entity.qualifiedName === myFirstModuleName + '.' + customerEntityName) {
+        let attributes = entity.attributes.filter(a => a.name === customerNumberAttributeName);
 
-		if (attributes.length >= 1) {
-			return attributes[0];
-		} else {
-			return null;
-		}
-	} else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceEntityName) {
-		let attributes = entity.attributes.filter(a => a.name === invoiceTimestampAttributeName);
+        if (attributes.length >= 1) {
+            return attributes[0];
+        } else {
+            return null;
+        }
+    } else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceEntityName) {
+        let attributes = entity.attributes.filter(a => a.name === invoiceTimestampAttributeName);
 
-		if (attributes.length >= 1) {
-			return attributes[0];
-		} else {
-			return null;
-		}
-	} else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceLineEntityName) {
-		let attributes = entity.attributes.filter(a => a.name === invoiceLineProductAttributeName);
+        if (attributes.length >= 1) {
+            return attributes[0];
+        } else {
+            return null;
+        }
+    } else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceLineEntityName) {
+        let attributes = entity.attributes.filter(a => a.name === invoiceLineProductAttributeName);
 
-		if (attributes.length >= 1) {
-			return attributes[0];
-		} else {
-			return null;
-		}
-	}
+        if (attributes.length >= 1) {
+            return attributes[0];
+        } else {
+            return null;
+        }
+    }
 }
 
 /*
@@ -212,35 +212,35 @@ function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attri
 let newMicroflowName = 'MyFirstNewMicroflow';
 
 function createMicroflows(module: projects.IModule, components: MendixModelComponents): projects.IModule {
-	myLog('Creating microflow ...');
+    myLog('Creating microflow ...');
 
-	createExampleMicroflow(module, components);
+    createExampleMicroflow(module, components);
 
-	myLog('Microflow created.');
+    myLog('Microflow created.');
 
-	return module;
+    return module;
 }
 
 function createExampleMicroflow(module: projects.IModule, components: MendixModelComponents) {
-	let customer = module.domainModel.entities.filter(e => e.name === customerEntityName)[0];
-	let invoice = module.domainModel.entities.filter(e => e.name === invoiceEntityName)[0];
+    let customer = module.domainModel.entities.filter(e => e.name === customerEntityName)[0];
+    let invoice = module.domainModel.entities.filter(e => e.name === invoiceEntityName)[0];
 
-	let microflow = components.createMicroflow(module, newMicroflowName);
+    let microflow = components.createMicroflow(module, newMicroflowName);
 
-	let parameterName = customerEntityName + 'Input';
+    let parameterName = customerEntityName + 'Input';
 
-	let parameter = components.createParameter(parameterName, customer.qualifiedName);
-	components.addObjectToMicroflow(microflow, microflow.objectCollection, parameter, null);
+    let parameter = components.createParameter(parameterName, customer.qualifiedName);
+    components.addObjectToMicroflow(microflow, microflow.objectCollection, parameter, null);
 
-	let previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, components.createStartEvent(), null);
+    let previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, components.createStartEvent(), null);
 
-	let invoicesAssoc = module.domainModel.associations.filter(a => a.name === 'Invoices')[0];
-	let retrieveByAssocActivity = components.createRetrieveByAssociationActivity(parameter.name, invoicesAssoc);
-	previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, retrieveByAssocActivity, previousObject);
+    let invoicesAssoc = module.domainModel.associations.filter(a => a.name === 'Invoices')[0];
+    let retrieveByAssocActivity = components.createRetrieveByAssociationActivity(parameter.name, invoicesAssoc);
+    previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, retrieveByAssocActivity, previousObject);
 
-	let endEvent = components.createEndEvent(microflow, "[" + invoice.qualifiedName + "]",
-		"$" + (<microflows.RetrieveAction>retrieveByAssocActivity.action).outputVariableName);
-	previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, endEvent, previousObject, false);
+    let endEvent = components.createEndEvent(microflow, "[" + invoice.qualifiedName + "]",
+        "$" + (<microflows.RetrieveAction>retrieveByAssocActivity.action).outputVariableName);
+    previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, endEvent, previousObject, false);
 }
 
 
@@ -302,25 +302,28 @@ function updateEntitySecurity(project: IModel, module: projects.IModule): when.P
         });
 }
 
-
-
 function updatePageSecurity(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
-    console.log('Creating access rules for pages');
+    myLog(`Creating access rules for pages`);
     return loadAsPromise(module.moduleSecurity)
         .then(moduleSecurity => {
             let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === 'User')[0];
 
             let pagesList = project.allPages().filter(page => page.qualifiedName.indexOf(myFirstModuleName) >= 0);
-            pagesList.forEach(page => {
-                return loadAsPromise(page)
-                    .then(pageObj => {
-                        console.log(`Creating page access for ${pageObj.name}`);
-                        pageObj.allowedRoles.push(moduleRole);
-                        return module;
-                    });
 
-            });
-            return module;
+            return when.all<projects.IModule>(pagesList.map((page) => {
+                return createPageAccess(page, moduleRole);
+            }))
+                .then(() => {
+                    return module;
+                });
+        });
+}
+
+function createPageAccess(page: pages.IPage, role: security.ModuleRole): when.Promise<void> {
+    return loadAsPromise(page)
+        .then(pageObj => {
+            myLog(`Creating page access for ${pageObj.name}`);
+            pageObj.allowedRoles.push(role);
         });
 }
 
@@ -366,3 +369,4 @@ function updateNavigation(project: IModel, module: projects.IModule, components:
     });
 
 }
+
