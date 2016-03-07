@@ -5,9 +5,9 @@ import { ModelSdkClient, IModel, projects, domainmodels, microflows, pages, navi
 
 import { MendixModelComponents} from "mendixmodelcomponents";
 
-import when = require('when');
+import when = require("when");
 
-const readlineSync = require('readline-sync');
+const readlineSync = require("readline-sync");
 
 /*
  * CREDENTIALS
@@ -20,11 +20,11 @@ const appname = "GeneratedApp-" + Date.now();
 /*
  *
  * Existing content
- *
+ *``
  */
 
-const desktopLayoutName = 'NavigationLayouts.Sidebar_Full_Responsive'
-const desktopLayoutPlaceholderName = 'Content';
+const desktopLayoutName = "NavigationLayouts.Sidebar_Full_Responsive";
+const desktopLayoutPlaceholderName = "Content";
 
 /*
  *
@@ -32,15 +32,15 @@ const desktopLayoutPlaceholderName = 'Content';
  *
  */
 
-const myFirstModuleName = 'MyFirstModule';
+const myFirstModuleName = "MyFirstModule";
 
-const customerEntityName = 'Customer';
-const customerNumberAttributeName = 'Number';
-const invoiceEntityName = 'Invoice';
-const invoiceNumberAttributeName = 'Number';
-const invoiceTimestampAttributeName = 'Timestamp';
-const invoiceLineEntityName = 'InvoiceLine';
-const invoiceLineProductAttributeName = 'Product';
+const customerEntityName = "Customer";
+const customerNumberAttributeName = "Number";
+const invoiceEntityName = "Invoice";
+const invoiceNumberAttributeName = "Number";
+const invoiceTimestampAttributeName = "Timestamp";
+const invoiceLineEntityName = "InvoiceLine";
+const invoiceLineProductAttributeName = "Product";
 
 const client = new MendixSdkClient(username, apikey);
 
@@ -116,30 +116,30 @@ function loadAsPromise<T>(loadable: Loadable<T>): when.Promise<T> {
  */
 
 function createDomainModel(module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
-    myLog('Creating domain model ...');
+    myLog("Creating domain model ...");
 
     return loadAsPromise(module.domainModel)
         .then(domainModel => {
             let customer = components.createEntity(domainModel, customerEntityName, 100, 100);
-            components.addAutoNumberAttribute(customer, customerNumberAttributeName, '1');
-            components.addStringAttribute(customer, 'FirstName');
-            components.addDateTimeAttribute(customer, 'SignupDate');
-            components.addStringAttribute(customer, 'LastName');
-            components.addStringAttribute(customer, 'Email');
-            components.addStringAttribute(customer, 'Address');
+            components.addAutoNumberAttribute(customer, customerNumberAttributeName, "1");
+            components.addStringAttribute(customer, "FirstName");
+            components.addDateTimeAttribute(customer, "SignupDate");
+            components.addStringAttribute(customer, "LastName");
+            components.addStringAttribute(customer, "Email");
+            components.addStringAttribute(customer, "Address");
 
             let invoice = components.createEntity(domainModel, invoiceEntityName, 400, 100);
-            components.addAutoNumberAttribute(invoice, invoiceNumberAttributeName, '1');
+            components.addAutoNumberAttribute(invoice, invoiceNumberAttributeName, "1");
             components.addDateTimeAttribute(invoice, invoiceTimestampAttributeName);
 
             let invoiceLine = components.createEntity(domainModel, invoiceLineEntityName, 700, 100);
             components.addStringAttribute(invoiceLine, invoiceLineProductAttributeName);
-            components.addIntegerAttribute(invoiceLine, 'Quantity');
+            components.addIntegerAttribute(invoiceLine, "Quantity");
 
-            components.associate(domainModel, invoice, customer, 'Invoices');
-            components.associate(domainModel, invoiceLine, invoice, 'Lines');
+            components.associate(domainModel, invoice, customer, "Invoices");
+            components.associate(domainModel, invoiceLine, invoice, "Lines");
 
-            myLog('Created domain model.');
+            myLog("Created domain model.");
 
             return module;
         });
@@ -152,7 +152,7 @@ function createDomainModel(module: projects.IModule, components: MendixModelComp
  */
 
 function createPages(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
-    myLog('Creating new pages ...');
+    myLog("Creating new pages ...");
 
     return components.retrieveLayout(project, desktopLayoutName)
         .then(desktopLayout => {
@@ -168,7 +168,7 @@ function createPages(project: IModel, module: projects.IModule, components: Mend
                         components.createListPageForEntity(entity, sortAttributeForEntity(entity), desktopLayout, desktopLayoutPlaceholderName, editPage);
                     });
 
-                    myLog('New pages created.');
+                    myLog("New pages created.");
 
                     return module;
                 });
@@ -176,7 +176,7 @@ function createPages(project: IModel, module: projects.IModule, components: Mend
 }
 
 function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attribute {
-    if (entity.qualifiedName === myFirstModuleName + '.' + customerEntityName) {
+    if (entity.qualifiedName === myFirstModuleName + "." + customerEntityName) {
         let attributes = entity.attributes.filter(a => a.name === customerNumberAttributeName);
 
         if (attributes.length >= 1) {
@@ -184,7 +184,7 @@ function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attri
         } else {
             return null;
         }
-    } else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceEntityName) {
+    } else if (entity.qualifiedName === myFirstModuleName + "." + invoiceEntityName) {
         let attributes = entity.attributes.filter(a => a.name === invoiceTimestampAttributeName);
 
         if (attributes.length >= 1) {
@@ -192,7 +192,7 @@ function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attri
         } else {
             return null;
         }
-    } else if (entity.qualifiedName === myFirstModuleName + '.' + invoiceLineEntityName) {
+    } else if (entity.qualifiedName === myFirstModuleName + "." + invoiceLineEntityName) {
         let attributes = entity.attributes.filter(a => a.name === invoiceLineProductAttributeName);
 
         if (attributes.length >= 1) {
@@ -209,14 +209,14 @@ function sortAttributeForEntity(entity: domainmodels.Entity): domainmodels.Attri
  *
  */
 
-let newMicroflowName = 'MyFirstNewMicroflow';
+let newMicroflowName = "MyFirstNewMicroflow";
 
 function createMicroflows(module: projects.IModule, components: MendixModelComponents): projects.IModule {
-    myLog('Creating microflow ...');
+    myLog("Creating microflow ...");
 
     createExampleMicroflow(module, components);
 
-    myLog('Microflow created.');
+    myLog("Microflow created.");
 
     return module;
 }
@@ -227,14 +227,14 @@ function createExampleMicroflow(module: projects.IModule, components: MendixMode
 
     let microflow = components.createMicroflow(module, newMicroflowName);
 
-    let parameterName = customerEntityName + 'Input';
+    let parameterName = customerEntityName + "Input";
 
     let parameter = components.createParameter(parameterName, customer.qualifiedName);
     components.addObjectToMicroflow(microflow, microflow.objectCollection, parameter, null);
 
     let previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, components.createStartEvent(), null);
 
-    let invoicesAssoc = module.domainModel.associations.filter(a => a.name === 'Invoices')[0];
+    let invoicesAssoc = module.domainModel.associations.filter(a => a.name === "Invoices")[0];
     let retrieveByAssocActivity = components.createRetrieveByAssociationActivity(parameter.name, invoicesAssoc);
     previousObject = components.addObjectToMicroflow(microflow, microflow.objectCollection, retrieveByAssocActivity, previousObject);
 
@@ -251,21 +251,21 @@ function createExampleMicroflow(module: projects.IModule, components: MendixMode
 *
 */
 function updateSecurity(project: IModel, module: projects.IModule, components: MendixModelComponents): when.Promise<projects.IModule> {
-    console.log('Turning security on to production');
+    console.log("Turning security on to production");
     return loadAsPromise(project.allProjectSecurities()[0])
         .then(projectSecurity => {
             projectSecurity.securityLevel = security.SecurityLevel.CheckEverything;
-            projectSecurity.adminPassword = '1';
+            projectSecurity.adminPassword = "1";
             return module;
         });
 
 }
 
 function updateEntitySecurity(project: IModel, module: projects.IModule): when.Promise<projects.IModule> {
-    console.log('Creating access rules');
+    console.log("Creating access rules");
     return loadAsPromise(module.moduleSecurity)
         .then(moduleSecurity => {
-            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === 'User')[0];
+            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === "User")[0];
 
             return loadAsPromise(module.domainModel)
                 .then(domainModel => {
@@ -306,7 +306,7 @@ function updatePageSecurity(project: IModel, module: projects.IModule): when.Pro
     myLog(`Creating access rules for pages`);
     return loadAsPromise(module.moduleSecurity)
         .then(moduleSecurity => {
-            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === 'User')[0];
+            let moduleRole = moduleSecurity.moduleRoles.filter(modulerole => modulerole.name === "User")[0];
 
             let pagesList = project.allPages().filter(page => page.qualifiedName.indexOf(myFirstModuleName) >= 0);
 
@@ -341,11 +341,11 @@ function updateNavigation(project: IModel, module: projects.IModule, components:
         let navDoc = project.allNavigationDocuments()[0];
         navDoc.load(navdoc => {
             let navigationProfile = navdoc.desktopProfile;
-            let pagesList = project.allPages().filter(page => page.name.indexOf('List') >= 0);
+            let pagesList = project.allPages().filter(page => page.name.indexOf("List") >= 0);
             let menuItemCollection = navigationProfile.menuItemCollection;
 
             pagesList.forEach(page => {
-                let pageName = page.name.replace(/_/g, ' ');
+                let pageName = page.name.replace(/_/g, " ");
                 console.log(`Adding page ${pageName} to navigation`);
                 let pageSetting = pages.PageSettings.create(project);
                 pageSetting.page = page;
@@ -354,7 +354,7 @@ function updateNavigation(project: IModel, module: projects.IModule, components:
                 let menuItem = menus.MenuItem.create(project);
                 menuItem.caption = components.createText(pageName);
                 menuItem.action = pageClientAction;
-                if (page.name === 'Customer_List') {
+                if (page.name === "Customer_List") {
                     navigationProfile.homePage = navigation.HomePage.create(project);
                     navigationProfile.homePage.page = page;
                 }
@@ -369,4 +369,3 @@ function updateNavigation(project: IModel, module: projects.IModule, components:
     });
 
 }
-
