@@ -13,8 +13,8 @@
   "dependencies": {
     "lodash": "^3.10.1",
     "mendixmodelcomponents": "^1.0.1",
-    "mendixmodelsdk": "^1.1.0",
-    "mendixplatformsdk": "^1.0.2",
+    "mendixmodelsdk": "^2.0.0",
+    "mendixplatformsdk": "^2.0.0",
     "mobservable": "^1.0.8",
     "readline-sync": "^1.2.21",
     "when": "^3.7.3"
