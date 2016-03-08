@@ -12,7 +12,7 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "^3.10.1",
-    "mendixmodelcomponents": "^1.0.1",
+    "mendixmodelcomponents": "^2.0.0",
     "mendixmodelsdk": "^2.0.0",
     "mendixplatformsdk": "^2.0.0",
     "mobservable": "^1.0.8",
