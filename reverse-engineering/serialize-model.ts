@@ -35,12 +35,12 @@ import when = require("when");
 function printAllDocuments(model: IModel): when.Promise<void> {
     console.log(`Project ${model.id} created successfully`);
 
-    //The following code is an example on retrieving all modules, entities, and associations
+    // The following code is an example on retrieving all modules, entities, and associations
     return when.all<void>(model.allModules().map( (mod) => {
 
           console.log(`\n//--- Module: ${mod.name} --- `);
           // serialize all documents within this module
-          //let logStatement = `Document ${doc.qualifiedName} in Module: ${mod.name}`;
+          // let logStatement = `Document ${doc.qualifiedName} in Module: ${mod.name}`;
           return loadAllDocuments(mod.documents)
           .then(documents => printAllDocumentsAsPromise(documents));
     }));
